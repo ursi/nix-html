@@ -173,7 +173,7 @@ p:
                   l.foldl'
                     (acc: v:
                        if v.type == "directory" then
-                         acc ++ f "${path}/${v.name}" (dir + (/. + v.name))
+                         acc ++ f (path + v.name + "/") (dir + (/. + v.name))
                        else if l.hasSuffix ".${extension}" v.name then
                          acc
                          ++ [ { inherit path;
@@ -193,13 +193,13 @@ p:
 
             html-file = { name, path }:
               p.writeText "${name}.html"
-                (import (dir + path + "/${name}.${extension}") args);
+                (import (dir + (path + "${name}.${extension}")) args)
           in
           l.concatMapStringsSep "\n"
             ({ name , path }@v:
                ''
                mkdir -p .${path}
-               ln -s ${html-file v} .${path}/${name}.html
+               ln -s ${html-file v} .${path + name}.html
                ''
             )
             page-list;
