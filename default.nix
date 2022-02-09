@@ -192,9 +192,28 @@ p:
               in
                 f "/" dir;
 
+            validate-link = file-path: path:
+              let
+                valid-absolute-path =
+                  any (a: a.path == path || path == a.path + a.name + ".html") page-list;
+
+                valid-relative-path =
+                  # improve this so it can handle `.` and `..`
+                  any
+                    (a:
+                       file-path + path == a.path
+                       || file-path + path == a.path + a.name + ".html"
+                    )
+                    page-list;
+              in
+              assert valid-absolute-path || valid-relative-path;
+              path;
+
             html-file = { name, path }:
               (p.writeText "${name}.html"
-                 (import (dir + (path + "${name}.${extension}")) args)
+                 (import (dir + (path + "${name}.${extension}"))
+                    (args // { validate-link = validate-link path; })
+                 )
               )
               .overrideAttrs (_: { passthru = { inherit path; }; });
           in
