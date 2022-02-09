@@ -210,7 +210,7 @@ p:
               path;
 
             html-file = { name, path }:
-              (p.writeText "${name}.html"
+              (p.writeText "${path + name}.html"
                  (import (dir + (path + "${name}.${extension}"))
                     (args // { validate-link = validate-link path; })
                  )
