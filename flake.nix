@@ -1,1 +1,1 @@
-{ outputs = { ... }: { __functor = _: { lib }: import ./. lib; }; }
+{ outputs = { ... }: { __functor = _: { pkgs }: import ./. pkgs; }; }
