@@ -161,6 +161,31 @@ p:
          );
 
     lib =
+      let
+        build-page-list = { dir, extension }:
+          let
+            f = path: dir:
+              l.foldl'
+                (acc: v:
+                   if v.type == "directory" then
+                     acc ++ f (path + v.name + "/") (dir + (/. + v.name))
+                   else if l.hasSuffix ".${extension}" v.name then
+                     acc
+                     ++ [ { inherit path;
+                            name = l.removeSuffix ".${extension}" v.name;
+                          }
+                        ]
+                   else
+                     acc
+                )
+                []
+                (l.mapAttrsToList
+                   (name: type: { inherit name type; })
+                   (readDir dir)
+                );
+          in
+            f "/" dir;
+      in
       { build-pages =
           { dir
           , args ? { h = html; }
@@ -168,29 +193,7 @@ p:
           , map ? l.id
           }@args':
           let
-            page-list =
-              let
-                f = path: dir:
-                  l.foldl'
-                    (acc: v:
-                       if v.type == "directory" then
-                         acc ++ f (path + v.name + "/") (dir + (/. + v.name))
-                       else if l.hasSuffix ".${extension}" v.name then
-                         acc
-                         ++ [ { inherit path;
-                                name = l.removeSuffix ".${extension}" v.name;
-                              }
-                            ]
-                       else
-                         acc
-                    )
-                    []
-                    (l.mapAttrsToList
-                       (name: type: { inherit name type; })
-                       (readDir dir)
-                    );
-              in
-                f "/" dir;
+            page-list = build-page-list { inherit dir extension; };
 
             validate-link = file-path: path:
               let
@@ -232,5 +235,16 @@ p:
                ''
             )
             page-list;
+
+        link-validator = { dir , extension ? "html.nix" }: path:
+              let
+                valid-absolute-path =
+                  any
+                    (a: a.path == path || path == a.path + a.name + ".html")
+                    (build-page-list { inherit dir extension; });
+
+              in
+              assert valid-absolute-path;
+              path;
       };
   }
