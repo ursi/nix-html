@@ -192,49 +192,52 @@ p:
           , extension ? "html.nix"
           , map ? l.id
           }@args':
-          let
-            page-list = build-page-list { inherit dir extension; };
+          if args?validate-link then
+            abort "The 'validate-link' argument will be overridden"
+          else
+            let
+              page-list = build-page-list { inherit dir extension; };
 
-            validate-link = file-path: path:
-              let
-                valid-absolute-path =
-                  any (a: a.path == path || path == a.path + a.name + ".html") page-list;
+              validate-link = file-path: path:
+                let
+                  valid-absolute-path =
+                    any (a: a.path == path || path == a.path + a.name + ".html") page-list;
 
-                valid-relative-path =
-                  # improve this so it can handle `.` and `..`
-                  any
-                    (a:
-                       file-path + path == a.path
-                       || file-path + path == a.path + a.name + ".html"
-                    )
-                    page-list;
-              in
-              assert valid-absolute-path || valid-relative-path;
-              path;
+                  valid-relative-path =
+                    # improve this so it can handle `.` and `..`
+                    any
+                      (a:
+                         file-path + path == a.path
+                         || file-path + path == a.path + a.name + ".html"
+                      )
+                      page-list;
+                in
+                assert valid-absolute-path || valid-relative-path;
+                path;
 
-            html-file = { name, path }:
-              (p.writeText "${path + name}.html"
-                 (import (dir + (path + "${name}.${extension}"))
-                    (args // { validate-link = validate-link path; })
-                 )
+              html-file = { name, path }:
+                (p.writeText "${path + name}.html"
+                   (import (dir + (path + "${name}.${extension}"))
+                      (args // { validate-link = validate-link path; })
+                   )
+                )
+                .overrideAttrs
+                  (_:
+                     { passthru =
+                         { file-name = "${name}.html";
+                           inherit path;
+                         };
+                     }
+                  );
+            in
+            l.concatMapStringsSep "\n"
+              ({ name , path }@v:
+                 ''
+                 mkdir -p .${path}
+                 ln -s ${args'.map (html-file v)} .${path + name}.html
+                 ''
               )
-              .overrideAttrs
-                (_:
-                   { passthru =
-                       { file-name = "${name}.html";
-                         inherit path;
-                       };
-                   }
-                );
-          in
-          l.concatMapStringsSep "\n"
-            ({ name , path }@v:
-               ''
-               mkdir -p .${path}
-               ln -s ${args'.map (html-file v)} .${path + name}.html
-               ''
-            )
-            page-list;
+              page-list;
 
         link-validator = { dir , extension ? "html.nix" }: path:
               let
