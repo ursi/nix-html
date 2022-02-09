@@ -165,7 +165,8 @@ p:
           { dir
           , args ? { h = html; }
           , extension ? "html.nix"
-          }:
+          , map ? l.id
+          }@args':
           let
             page-list =
               let
@@ -192,14 +193,16 @@ p:
                 f "/" dir;
 
             html-file = { name, path }:
-              p.writeText "${name}.html"
-                (import (dir + (path + "${name}.${extension}")) args)
+              (p.writeText "${name}.html"
+                 (import (dir + (path + "${name}.${extension}")) args)
+              )
+              .overrideAttrs (_: { passthru = { inherit path; }; });
           in
           l.concatMapStringsSep "\n"
             ({ name , path }@v:
                ''
                mkdir -p .${path}
-               ln -s ${html-file v} .${path + name}.html
+               ln -s ${args'.map (html-file v)} .${path + name}.html
                ''
             )
             page-list;
