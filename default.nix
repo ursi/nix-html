@@ -215,7 +215,14 @@ p:
                     (args // { validate-link = validate-link path; })
                  )
               )
-              .overrideAttrs (_: { passthru = { inherit path; }; });
+              .overrideAttrs
+                (_:
+                   { passthru =
+                       { file-name = "${name}.html";
+                         inherit path;
+                       };
+                   }
+                );
           in
           l.concatMapStringsSep "\n"
             ({ name , path }@v:
