@@ -6,7 +6,20 @@
     };
 
   outputs = { nixpkgs, utils, ... }@inputs:
-    { __functor = _: { pkgs }: import ./. pkgs; }
+    nixpkgs.lib.setFunctionArgs
+      (args:
+         if !args?pkgs &&  !args?system then
+           abort "One of [pkgs|system] must be defined"
+         else
+           import ./.
+              (if args?system then
+                 nixpkgs.legacyPackages.${args.system}
+               else
+                 args.pkgs
+              )
+
+      )
+      { pkgs = true; system = false; }
     // (utils.apply-systems { inherit inputs; }
           ({ deadnix, make-shell, ...}:
              { devShell =
