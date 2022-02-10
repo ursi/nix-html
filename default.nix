@@ -239,6 +239,8 @@ p:
               )
               page-list;
 
+        escape = replaceStrings [ "<" ">" "&" ] [ "&lt;" "&gt;" "&amp;" ];
+
         link-validator = { dir , extension ? "html.nix" }: path:
               let
                 valid-absolute-path =
