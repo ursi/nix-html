@@ -191,7 +191,9 @@ p:
           , args ? { h = html; }
           , extension ? "html.nix"
           , map ? l.id
-          }@args':
+          }:
+          let html-map = map; in
+          let inherit (builtins) map; in
           if args?validate-link then
             abort "The 'validate-link' argument will be overridden"
           else
@@ -234,7 +236,7 @@ p:
               ({ name , path }@v:
                  ''
                  mkdir -p .${path}
-                 ln -s ${args'.map (html-file v)} .${path + name}.html
+                 ln -s ${html-map (html-file v)} .${path + name}.html
                  ''
               )
               page-list;
