@@ -168,7 +168,7 @@ p:
               l.foldl'
                 (acc: v:
                    if v.type == "directory" then
-                     acc ++ f (path + v.name + "/") (dir + (/. + v.name))
+                     acc ++ f (path + v.name + "/") (dir + "/${v.name}")
                    else if l.hasSuffix ".${extension}" v.name then
                      acc
                      ++ [ { inherit path;
