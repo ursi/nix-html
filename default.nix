@@ -162,7 +162,7 @@ p:
 
     lib =
       let
-        build-page-list = { dir, extension }:
+        build-page-list = { dir, extension, plugins }:
           let
             f = path: dir:
               l.foldl'
@@ -171,12 +171,34 @@ p:
                      acc ++ f (path + v.name + "/") (dir + "/${v.name}")
                    else if l.hasSuffix ".${extension}" v.name then
                      acc
-                     ++ [ { inherit path;
+                     ++ [ { inherit extension path;
                             name = l.removeSuffix ".${extension}" v.name;
                           }
                         ]
                    else
-                     acc
+                     let plugin-extensions = attrNames plugins; in
+                     if any (e: l.hasSuffix ".${e}" v.name) plugin-extensions then
+                       let
+                         # this is so `bar` plugins don't get used on `foo.bar` files
+                         # if there is a plugin for both
+                         length-sorted-extensions =
+                           sort
+                             (a: b: stringLength a > stringLength b)
+                             plugin-extensions;
+
+                         extension =
+                           l.findFirst
+                             (e: l.hasSuffix ".${e}" v.name)
+                             null
+                             length-sorted-extensions;
+                       in
+                       acc
+                       ++ [ { inherit extension path;
+                              name = l.removeSuffix ".${extension}" v.name;
+                            }
+                          ]
+                     else
+                       acc
                 )
                 []
                 (l.mapAttrsToList
@@ -191,6 +213,7 @@ p:
           , args ? { h = html; }
           , extension ? "html.nix"
           , map ? l.id
+          , plugins ? {}
           }:
           let html-map = map; in
           let inherit (builtins) map; in
@@ -198,7 +221,7 @@ p:
             abort "The 'validate-link' argument will be overridden"
           else
             let
-              page-list = build-page-list { inherit dir extension; };
+              page-list = build-page-list { inherit dir extension plugins; };
 
               validate-link = file-path: path:
                 let
@@ -217,23 +240,27 @@ p:
                 assert valid-absolute-path || valid-relative-path;
                 path;
 
-              html-file = { name, path }:
+              html-file = { name, path, ... }@a:
+                let full-path = dir + (path + "${name}.${a.extension}"); in
                 (p.writeText "${path + name}.html"
-                   (import (dir + (path + "${name}.${extension}"))
-                      (args // { validate-link = validate-link path; })
+                   (if a.extension == extension then
+                      import full-path (args // { validate-link = validate-link path; })
+                    else
+                      plugins.${a.extension} full-path
                    )
                 )
                 .overrideAttrs
                   (_:
                      { passthru =
                          { file-name = "${name}.html";
+                           inherit (a) extension;
                            inherit path;
                          };
                      }
                   );
             in
             l.concatMapStringsSep "\n"
-              ({ name , path }@v:
+              ({ extension, name, path }@v:
                  ''
                  mkdir -p .${path}
                  ln -s ${html-map (html-file v)} .${path + name}.html
@@ -248,7 +275,7 @@ p:
                 valid-absolute-path =
                   any
                     (a: a.path == path || path == a.path + a.name + ".html")
-                    (build-page-list { inherit dir extension; });
+                    (build-page-list { inherit dir extension plugins; });
 
               in
               assert valid-absolute-path;
