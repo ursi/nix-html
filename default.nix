@@ -216,7 +216,7 @@ p:
           , plugins ? {}
           }:
           let html-map = map; in
-          let inherit (builtins) map; in
+          # let inherit (builtins) map; in
           if args?validate-link then
             abort "The 'validate-link' argument will be overridden"
           else
