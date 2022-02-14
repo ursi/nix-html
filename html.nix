@@ -36,6 +36,7 @@ l:
       "<${name} ${make-attributes attributes}>";
   in
   { inherit element self-closing;
+    escape = replaceStrings [ "<" ">" "&" ] [ "&lt;" "&gt;" "&amp;" ];
     html = a: c: "<!DOCTYPE html>" + element "html" a c;
   }
   // (listToAttrs
