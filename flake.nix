@@ -8,7 +8,7 @@
   outputs = { nixpkgs, utils, ... }@inputs:
     nixpkgs.lib.setFunctionArgs
       (args:
-         if !args?pkgs &&  !args?system then
+         if !args?pkgs && !args?system then
            abort "One of [pkgs|system] must be defined"
          else
            import ./.
@@ -21,7 +21,7 @@
       )
       { pkgs = true; system = false; }
     // (utils.apply-systems { inherit inputs; }
-          ({ deadnix, make-shell, ...}:
+          ({ deadnix, make-shell, ... }:
              { devShell =
                  make-shell
                    { packages = [ deadnix ];
