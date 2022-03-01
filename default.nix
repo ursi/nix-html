@@ -7,7 +7,7 @@ pkgs:
   rec
   { inherit files;
     html = import ./html.nix l;
-    specs = import ./specs.nix p;
+    builders = import ./builders.nix p;
 
     make-path-validator = { relative-path, dir, spec }:
       let
@@ -34,41 +34,48 @@ pkgs:
         assert valid-absolute-path || valid-relative-path;
         path-in-html;
 
-    make-builder = target-extension: dir: spec:
-      let
-        change-ext = files.change-extension target-extension;
-        f = map: target-dir:
-          let
-            build-file = path:
-              if files.extension path == target-extension then
-                p.writeText
-                  (change-ext path)
-                  (readFile (dir + path))
-              else
-                spec.${files.extension path}
-                  { absolute-path = dir + path;
-                    relative-path = path;
-                  };
+    make-builder = dir: spec:
+      foldl'
+        (acc: a:
+           let
+             target = a.name;
+             builders = a.value;
+             change-ext = files.change-extension target;
 
-            paths =
-              filter
-                (path:
-                   spec?${files.extension path}
-                   || files.extension path == target-extension
-                )
-                (files.recursive-list dir);
-          in
-          l.concatMapStringsSep "\n"
-            (path:
-               let build-path = change-ext path; in
-               ''
-               mkdir -p ${target-dir + dirOf build-path}
-               ln -s ${map (build-file path)} ${target-dir + build-path}
-               ''
-            )
-            paths;
-      in
-      { __functor = _: f l.id;
-        map = (map: f map);
-      };
+             paths =
+               filter
+                 (path:
+                    builders?${files.extension path}
+                    || files.extension path == target
+                 )
+                 (files.recursive-list dir);
+
+             build-file = path:
+               if files.extension path == target then
+                 p.writeText
+                   (change-ext path)
+                   (readFile (dir + path))
+               else
+                 builders.${files.extension path}
+                   { absolute-path = dir + path;
+                     relative-path = path;
+                   };
+
+             # will implement later
+             map' = l.id;
+           in
+           target-dir:
+             acc target-dir
+             + l.concatMapStringsSep "\n"
+                 (path:
+                    let build-path = change-ext path; in
+                    ''
+                    mkdir -p ${target-dir + dirOf build-path}
+                    ln -s ${map' (build-file path)} ${target-dir + build-path}
+                    ''
+                 )
+                 paths
+        )
+        (l.const "")
+        (l.mapAttrsToList l.nameValuePair spec);
   }
