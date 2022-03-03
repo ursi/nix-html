@@ -3,11 +3,12 @@ pkgs:
   let
     l = p.lib; p = pkgs;
     files = import ./files.nix l;
+    map-attribute = "__nix-html-map";
   in
   rec
   { inherit files;
     html = import ./html.nix l;
-    builders = import ./builders.nix p;
+    builders = import ./builders.nix { inherit map-attribute p; };
 
     make-path-validator = { relative-path, dir, spec }:
       let
@@ -59,8 +60,7 @@ pkgs:
                      relative-path = path;
                    };
 
-             # will implement later
-             map' = l.id;
+             map' = builders.${map-attribute} or l.id;
            in
            target-dir:
              acc target-dir
