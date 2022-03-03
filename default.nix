@@ -52,9 +52,7 @@ pkgs:
 
              build-file = path:
                if files.extension path == target then
-                 p.writeText
-                   (change-ext path)
-                   (readFile (dir + path))
+                 p.runCommand (change-ext path) {} "ln -s ${dir + path} $out"
                else
                  builders.${files.extension path}
                    { absolute-path = dir + path;
