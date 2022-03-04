@@ -20,13 +20,17 @@
       )
       { pkgs = true; system = false; }
     // (utils.apply-systems { inherit inputs; }
-          ({ deadnix, make-shell, ... }:
+          ({ deadnix, make-shell, pkgs, ... }:
              { devShell =
                  make-shell
                    { packages = [ deadnix ];
                      aliases.lint = ''find -name "*.nix" | xargs deadnix'';
                    };
 
+               apps.html-proofer =
+                 { type = "app";
+                   program = "${pkgs.html-proofer}/bin/htmlproofer";
+                 };
              }
           )
        );

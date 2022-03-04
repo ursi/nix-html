@@ -9,32 +9,12 @@ pkgs:
   { basic = args: reflect (l.const args);
     inherit files;
     html = import ./html.nix l;
+
+    html-proofer =
+      p.writeScript "nix-html-htmlproofer"
+        ''LC_CTYPE=C.UTF-8 ${p.html-proofer}/bin/htmlproofer "$1" --disable-external "''${@:2}"'';
+
     map = map: b: b // { ${map-attribute} = map; };
-
-    make-path-validator = { relative-path, dir, spec }:
-      let
-        file-list = filter (a: spec?${files.extension a}) (files.recursive-list dir);
-        dir-of = p: let d = dirOf p; in if d == "/" then d else d + "/";
-        to-html = files.change-extension "html";
-      in
-      path-in-html:
-        let
-          make-tests = modify: path:
-            elem
-              (modify path-in-html)
-              [ (dir-of path)
-                (to-html path)
-                (l.removeSuffix ".html" (to-html path))
-              ];
-
-          valid-absolute-path = any (make-tests l.id) file-list;
-
-          valid-relative-path =
-            # improve this so it can handle `.` and `..`
-            any (make-tests (p: dir-of relative-path + p)) file-list;
-        in
-        assert valid-absolute-path || valid-relative-path;
-        path-in-html;
 
     make-builder = dir: spec:
       foldl'
