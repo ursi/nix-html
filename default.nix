@@ -1,14 +1,15 @@
+with builtins;
 pkgs:
-  with builtins;
   let
     l = p.lib; p = pkgs;
     files = import ./files.nix l;
     map-attribute = "__nix-html-map";
   in
   rec
-  { inherit files;
+  { basic = args: reflect (l.const args);
+    inherit files;
     html = import ./html.nix l;
-    builders = import ./builders.nix { inherit map-attribute p; };
+    map = map: b: b // { ${map-attribute} = map; };
 
     make-path-validator = { relative-path, dir, spec }:
       let
@@ -76,4 +77,9 @@ pkgs:
         )
         (l.const "")
         (l.mapAttrsToList l.nameValuePair spec);
+
+    reflect = args:
+      { "html.nix" = ps:
+          p.writeText ps.relative-path (import ps.absolute-path (args ps));
+      };
   }
