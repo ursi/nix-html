@@ -32,9 +32,17 @@ pkgs:
                  )
                  (files.recursive-list dir);
 
+
              build-file = path:
+               let
+                 make-path = path':
+                   builtins.path
+                     { name = l.strings.sanitizeDerivationName (baseNameOf path');
+                       path = path';
+                     };
+               in
                if files.extension path == target then
-                 p.runCommand (change-ext path) {} "ln -s ${dir + path} $out"
+                 p.runCommand (change-ext path) {} "ln -s ${make-path (dir + path)} $out"
                else
                  builders.${files.extension path}
                    { absolute-path = dir + path;
@@ -47,10 +55,14 @@ pkgs:
              acc target-dir
              + l.concatMapStringsSep "\n"
                  (path:
-                    let build-path = change-ext path; in
+                    let
+                      build-path = change-ext path;
+                      dir = target-dir + l.escapeShellArg (dirOf build-path);
+                      file = target-dir + l.escapeShellArg build-path;
+                    in
                     ''
-                    mkdir -p ${target-dir + dirOf build-path}
-                    ln -s ${map' (build-file path)} ${target-dir + build-path}
+                    mkdir -p ${dir}
+                    ln -s ${map' (build-file path)} ${file}
                     ''
                  )
                  paths
