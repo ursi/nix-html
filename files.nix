@@ -2,7 +2,9 @@ with builtins;
 l:
   rec
   { change-extension = new-ext: path:
-      l.removeSuffix (extension path) path + new-ext;
+      let ext = extension path; in
+      if ext == "" then path
+      else l.removeSuffix ext path + new-ext;
 
     extension = path:
       let match' = match ''[^.]*\.(.+)'' (baseNameOf path); in
