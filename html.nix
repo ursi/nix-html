@@ -6,8 +6,20 @@ l:
         toString
           (l.mapAttrsToList
              (n: v:
-               if isBool v then if v then n else ""
-               else ''${n}="${toString v}"''
+               if isBool v then
+                 if v then n else ""
+               else if n == "style" && isAttrs v then
+                 let
+                   styles =
+                     toString
+                       (l.mapAttrsToList
+                          (n': v': "${n'}: ${toString v'};")
+                          v
+                       );
+                 in
+                 ''style="${styles}"''
+               else
+                 ''${n}="${toString v}"''
              )
              attributes
           )
