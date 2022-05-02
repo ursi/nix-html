@@ -1,6 +1,7 @@
 { inputs =
     { deadnix.url = "github:astro/deadnix";
       make-shell.url = "github:ursi/nix-make-shell/1";
+      doc-gen.url = "git+ssh://git@git.platonic.systems/mason.mackaman/nix-doc-gen.git";
       nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
       utils.url = "github:ursi/flake-utils/8";
     };
@@ -20,8 +21,10 @@
       )
       { pkgs = true; system = false; }
     // (utils.apply-systems { inherit inputs; }
-          ({ deadnix, make-shell, pkgs, ... }:
-             { devShell =
+          ({ deadnix, make-shell, doc-gen, pkgs, ... }:
+             { packages.docs = doc-gen (removeAttrs (import ./. pkgs) [ "html-proofer" ]);
+
+               devShell =
                  make-shell
                    { packages = [ deadnix ];
                      aliases.lint = ''find -name "*.nix" | xargs deadnix'';
