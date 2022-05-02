@@ -31,10 +31,10 @@ pkgs:
           ''
           Example usage:
           ```
-          make-site
+          nix-html.make-site
             ./website
             { html =
-                basic { args = { inherit social templates; }; }
+                nix-html.basic { args = { inherit social templates; }; }
                 // { md = markdown-plugin; }
             }
           ```
