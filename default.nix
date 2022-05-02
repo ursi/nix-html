@@ -72,8 +72,8 @@ pkgs:
                      p.runCommand (change-ext path) {} "ln -s ${make-path (dir + path)} $out"
                    else
                      builders.${files.extension path}
-                       { absolute-path = dir + path;
-                         relative-path = path;
+                       { system = dir + path;
+                         site = path;
                        };
 
                  map' = builders.${map-attribute} or l.id;
@@ -99,7 +99,7 @@ pkgs:
       };
 
     reflect = args:
-      { "html.nix" = ps:
-          p.writeText ps.relative-path (import ps.absolute-path (args ps));
+      { "html.nix" = paths:
+          p.writeText paths.site (import paths.system (args paths));
       };
   }
