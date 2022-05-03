@@ -15,12 +15,18 @@ l:
         returns = "`path` with its extension changed to `new-ext`";
 
         examples =
-          [ ''change-extension "html" "/home/me/file.txt" == "/home/me/file.html"'' ];
+          [ ''change-extension "html" "/home/me/file.txt" == "/home/me/file.html"''
+            ''change-extension "" "file.txt" == "file"''
+          ];
 
         __functor = _: new-ext: path:
           let ext = extension path; in
-          if ext == "" then path
-          else l.removeSuffix ext path + new-ext;
+          if ext == "" then
+            path
+          else if new-ext == "" then
+            l.removeSuffix ".${ext}" path
+          else
+            l.removeSuffix ext path + new-ext;
       };
 
     extension =
