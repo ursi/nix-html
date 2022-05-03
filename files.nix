@@ -16,6 +16,7 @@ l:
 
         examples =
           [ ''change-extension "html" "/home/me/file.txt" == "/home/me/file.html"''
+            ''change-extension "anything" "file" == "file"''
             ''change-extension "" "file.txt" == "file"''
           ];
 
