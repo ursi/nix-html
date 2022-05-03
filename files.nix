@@ -48,8 +48,6 @@ l:
             if isNull match' then "" else head match';
       };
 
-    name = path: l.removeSuffix ".${extension path}" (baseNameOf path);
-
     recursive-list =
       { args =
           [ { name = "dir";
