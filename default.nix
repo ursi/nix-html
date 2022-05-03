@@ -3,7 +3,6 @@ pkgs:
   let
     l = p.lib; p = pkgs;
     files = import ./files.nix l;
-    map-attribute = "__nix-html-map";
   in
   rec
   { basic = args: reflect (l.const args);
@@ -28,7 +27,7 @@ pkgs:
         notes = example-usage;
         returns = "A attrset of builders that is the same as `builders`, but with their outputs run through `map`.";
 
-        __functor = _: map: b: b // { ${map-attribute} = map; };
+        __functor = _: map: l.mapAttrs (_: v: paths: map (v paths));
       };
 
     make-site =
@@ -92,8 +91,6 @@ pkgs:
                              { system = dir + path;
                                site = path;
                              };
-
-                       map' = builders.${map-attribute} or l.id;
                      in
                      l.concatMapStringsSep "\n"
                        (path:
@@ -104,7 +101,7 @@ pkgs:
                           in
                           ''
                           mkdir -p ${dir}
-                          ln -s ${map' (build-file path)} ${file}
+                          ln -s ${build-file path} ${file}
                           ''
                        )
                        paths
