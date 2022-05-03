@@ -14,7 +14,22 @@ pkgs:
       p.writeScript "nix-html-htmlproofer"
         ''LC_CTYPE=C.UTF-8 ${p.html-proofer}/bin/htmlproofer "$1" --disable-external "''${@:2}"'';
 
-    map = map: b: b // { ${map-attribute} = map; };
+    map =
+      { args =
+          [ { name = "map";
+              description = "A function that takes a path as an argument, and returns a path";
+            }
+
+            { name = "builders";
+              description = "An attribute set of builders for a particular target.";
+            }
+          ];
+
+        notes = example-usage;
+        returns = "A attrset of builders that is the same as `builders`, but with their outputs run through `map`.";
+
+        __functor = _: map: b: b // { ${map-attribute} = map; };
+      };
 
     make-site =
       { args =
