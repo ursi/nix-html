@@ -2,6 +2,7 @@ with builtins;
 l:
   let
     make-attributes = attributes:
+      let to-escaped-string = s: replaceStrings [ "\"" ] [ "&quot;" ] (toString s); in
       if isAttrs attributes then
         toString
           (l.mapAttrsToList
@@ -11,7 +12,7 @@ l:
                else if n == "style" && isAttrs v then
                  let
                    styles =
-                     toString
+                     to-escaped-string
                        (l.mapAttrsToList
                           (n': v': "${n'}: ${toString v'};")
                           v
@@ -19,14 +20,14 @@ l:
                  in
                  ''style="${styles}"''
                else
-                 ''${n}="${toString v}"''
+                 ''${n}="${to-escaped-string v}"''
              )
              attributes
           )
       else
         let str = toString attributes; in
         if str == "" then ""
-        else ''class="${str}"'';
+        else ''class="${to-escaped-string str}"'';
 
     args =
       l.mapAttrs
