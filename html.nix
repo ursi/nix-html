@@ -19,6 +19,12 @@ l:
                        );
                  in
                  ''style="${styles}"''
+               else if n == "data" && isAttrs v then
+                 toString
+                   (l.mapAttrsToList
+                      (n': v': ''data-${n'}="${to-escaped-string v'}"'')
+                      v
+                   )
                else
                  ''${n}="${to-escaped-string v}"''
              )
@@ -33,7 +39,7 @@ l:
       l.mapAttrs
         (name: description: { inherit name description; })
         { name = "the name of the HTML elment";
-          attributes = "If `attributes` is an attrset, the keys will be added with the `toString` of their values as attributes to the element. If `attributes` is not an attrset, it will be `toString`'d and the resulting string will be used as a `class` attribute.";
+          attributes = "If `attributes` is an attrset, the keys will be added with the `toString` of their values as attributes to the element. If `attributes` is not an attrset, it will be `toString`'d and the resulting string will be used as a `class` attribute. You are also allowed to pass in attrsets to `style` and `data` attributes.";
           children = "`toString children` will be the text inside the element.";
         };
 
