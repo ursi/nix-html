@@ -5,7 +5,30 @@ pkgs:
     files = import ./files.nix l;
   in
   rec
-  { basic = args: reflect (l.const args);
+  { const-builder =
+      { args =
+          [ { name = "args";
+              # description = "An attrset that will be passed into all the `*.html.nix` files";
+              description = "anything";
+            }
+          ];
+
+        notes =
+          ''
+          Example usage:
+          ```
+          nix-html.make-site
+            ./website
+            { html."html.nix" = nix-html.const-builder { inherit social templates; }; }
+          ```
+          '';
+
+        # returns = "A builder for `*.html.nix` files";
+        returns = "A builder that passes `args` into each file and writes the result to a derivation";
+
+        __functor = args: reflect (l.const args);
+      };
+
     inherit files;
     html = import ./html.nix l;
 
@@ -24,7 +47,22 @@ pkgs:
             }
           ];
 
-        notes = example-usage;
+        notes =
+          ''
+          Example usage:
+          ```
+          nix-html.make-site
+            ./website
+            { html =
+                nix-html.map
+                  minify-html
+                  { "html.nix" = nix-html.const-builder { inherit social templates; }
+                     md = markdown-plugin;
+                  };
+            }
+          ```
+          '';
+
         returns = "A attrset of builders that is the same as `builders`, but with their outputs run through `map`.";
 
         __functor = _: map: l.mapAttrs (_: v: paths: map (v paths));
@@ -48,8 +86,11 @@ pkgs:
           nix-html.make-site
             ./website
             { html =
-                nix-html.basic { args = { inherit social templates; }; }
-                // { md = markdown-plugin; }
+                nix-html.map
+                  minify-html
+                  { "html.nix" = nix-html.const-builder { inherit social templates; }
+                     md = markdown-plugin;
+                  };
             }
           ```
           '';
@@ -111,8 +152,62 @@ pkgs:
             );
       };
 
-    reflect = args:
-      { "html.nix" = paths:
+    builder =
+      { args =
+          [ { name = "args";
+              description = "A function that takes a `paths` argument and returns anything";
+            }
+          ];
+
+        notes =
+          ''
+          `paths` is an attrset with the following attributes
+            - `system`: the absolute path to the file on you system
+            - `site`: the path to the file on the site
+
+          Example usage:
+          ```
+          nix-html.make-site
+            ./website
+            { html."html.nix" =
+                nix-html.builder
+                  (paths:
+                     { inherit social templates;
+                       inherit (paths) site;
+                     }
+                  );
+            }
+          ```
+          '';
+
+        returns = "A builder that passes `args paths` into each file and writes the result to a derivation";
+
+        __functor = _: args: paths:
           p.writeText paths.site (import paths.system (args paths));
       };
   }
+
+  # l.pipe
+  #   { inherit social templates;
+  #     inherit (paths) site;
+  #   }
+  #   [ l.const nix-html.builder ]
+
+
+  # nix-html.builder
+  #   (_: { inherit social templates;
+  #         inherit (paths) site;
+  #       }
+  #   )
+
+  # nix-html.builder
+  #   (_:
+  #      { inherit social templates;
+  #        inherit (paths) site;
+  #      }
+  #   )
+
+  # nix-html.builder (_:
+  #   { inherit social templates;
+  #     inherit (paths) site;
+  #   })

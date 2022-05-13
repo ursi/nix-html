@@ -95,11 +95,11 @@
         "utils": "utils_7"
       },
       "locked": {
-        "lastModified": 1651015527,
-        "narHash": "sha256-mWifBOi1woi+sq1K0ScCcNjJAZJ5vkYzml6tVii8OQ8=",
+        "lastModified": 1651525435,
+        "narHash": "sha256-pq+Pp3oGxu/QZ/AVhDHBTx2RTpsXRpepbq7rXn3433s=",
         "ref": "master",
-        "rev": "7ecb95016169b9cdb70e58c276081061a06daf82",
-        "revCount": 15,
+        "rev": "3bf1edb6e9b4f43af2e32ab2ed7d638d260135de",
+        "revCount": 17,
         "type": "git",
         "url": "ssh://git@git.platonic.systems/mason.mackaman/nix-doc-gen.git"
       },

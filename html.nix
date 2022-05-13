@@ -52,6 +52,7 @@ l:
 
         returns = "An HTML `name` element";
         notes = "All non-self-closing, non-`html` HTML elements, e.g. `div`, have their own function which is just this function with `name` supplied.";
+
         examples =
           [ ''element "div" "thing" "inner text" == '''<div class="thing">inner text</div>'''''
             ''div "thing" "inner text" == '''<div class="thing">inner text</div>'''''
