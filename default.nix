@@ -5,8 +5,7 @@ pkgs:
     files = import ./files.nix l;
   in
   rec
-  { basic = args: reflect (l.const args);
-    inherit files;
+  { inherit files;
     html = import ./html.nix l;
 
     html-proofer =
@@ -33,7 +32,7 @@ pkgs:
             { html =
                 nix-html.map
                   minify-html
-                  { "html.nix" = nix-html.const-builder { inherit social templates; }
+                  { "html.nix" = nix-html.from-function { inherit social templates; }
                      md = markdown-plugin;
                   };
             }
@@ -63,8 +62,11 @@ pkgs:
           nix-html.make-site
             ./website
             { html =
-                nix-html.basic { args = { inherit social templates; }; }
-                // { md = markdown-plugin; }
+                nix-html.map
+                  minify-html
+                  { "html.nix" = nix-html.from-function { inherit social templates; }
+                     md = markdown-plugin;
+                  };
             }
           ```
           '';
@@ -126,8 +128,45 @@ pkgs:
             );
       };
 
-    reflect = args:
-      { "html.nix" = paths:
-          p.writeText paths.site (import paths.system (args paths));
+    from-function =
+      { args =
+          [ { name = "args";
+              description = "Either an attrset or a function that takes a `paths` argument and returns anything";
+            }
+          ];
+
+        notes =
+          ''
+          `paths` is an attrset with the following attributes
+            - `system`: the absolute path to the file on you system
+            - `site`: the path to the file on the website
+
+          Example usage:
+          ```
+          nix-html.make-site
+            ./website
+            { html =
+                { "html.nix" =
+                     nix-html.from-function { inherit social templates; }
+
+                  "blog.nix" =
+                     nix-html.from-function
+                       (paths:
+                          { inherit social templates;
+                            inherit (paths) site;
+                          }
+                       );
+                };
+            }
+          ```
+          '';
+
+        returns = "A builder that passes either `args` or `args paths` into each file and writes the result to a derivation";
+
+        __functor = _: args: paths:
+          p.writeText paths.site
+            (import paths.system
+               (if isFunction args then args paths else args)
+            );
       };
   }
