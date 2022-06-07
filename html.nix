@@ -75,13 +75,6 @@ l:
           "<${name} ${make-attributes attributes}>${children-str}</${name}>";
       };
 
-    element-for-documentation = name:
-      { args = [ args.attributes args.children ];
-        returns = "An HTML `${name}` element";
-        examples = [ ''${name} "thing" "inner text" == '''<${name} class="thing">inner text</${name}>''''' ];
-        __functor = _: element name;
-      };
-
     self-closing =
       { args =
           [ args.name
@@ -98,13 +91,6 @@ l:
 
         __functor = _: name: attributes:
           "<${name} ${make-attributes attributes}>";
-      };
-
-    self-closing-for-documentation = name:
-      { args = [ args.attributes args.children ];
-        returns = "An HTML `${name}` element";
-        examples = [ ''${name} "thing" == '''<${name} class="thing">''''' ];
-        __functor = _: self-closing-for-documentation name;
       };
   in
   { inherit element self-closing;
