@@ -41,7 +41,19 @@ pkgs:
 
         returns = "A attrset of builders that is the same as `builders`, but with their outputs run through `map`.";
 
-        __functor = _: map: l.mapAttrs (_: v: paths: map (v paths));
+        __functor = _: map:
+          l.mapAttrs
+            (_: v: paths:
+               let built = v paths; in
+               if built?assets then
+                 p.runCommand built.name { inherit (built) outputs; }
+                   ''
+                   ln -s ${map built} $out
+                   ln -s ${built.assets} $assets
+                   ''
+               else
+                 map built
+            );
       };
 
     make-site =
@@ -115,10 +127,17 @@ pkgs:
                             build-path = change-ext path;
                             dir = "$out" + l.escapeShellArg (dirOf build-path);
                             file = "$out" + l.escapeShellArg build-path;
+                            built = build-file path;
                           in
                           ''
                           mkdir -p ${dir}
-                          ln -s ${build-file path} ${file}
+                          ln -s ${built} ${file}
+
+                          ${if built?assets
+                            then "cp -r ${built.assets}/. ${dir}"
+                            else ""
+                          }
+
                           ''
                        )
                        paths
