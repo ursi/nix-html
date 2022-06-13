@@ -22,7 +22,7 @@
       { pkgs = true; system = false; }
     // (utils.apply-systems { inherit inputs; }
           ({ deadnix, make-shell, doc-gen, pkgs, ... }:
-             { packages.docs = doc-gen (removeAttrs (import ./. pkgs) [ "html-proofer" ]);
+             { packages.docs = doc-gen.library (removeAttrs (import ./. pkgs) [ "html-proofer" ]);
 
                devShell =
                  make-shell
