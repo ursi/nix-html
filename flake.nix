@@ -1,7 +1,7 @@
 { inputs =
     { deadnix.url = "github:astro/deadnix";
       make-shell.url = "github:ursi/nix-make-shell/1";
-      doc-gen.url = "git+ssh://git@git.platonic.systems/mason.mackaman/nix-doc-gen.git";
+      doc-gen.url = "git+ssh://git@git.ts.platonic.systems/mason.mackaman/nix-doc-gen.git";
       nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
       utils.url = "github:ursi/flake-utils/8";
     };

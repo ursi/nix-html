@@ -55,11 +55,11 @@
         "rev": "39ffb9d4b4a486557d69d5b72eb7a7b782832096",
         "revCount": 23,
         "type": "git",
-        "url": "ssh://git@git.platonic.systems/mason.mackaman/nix-doc-gen.git"
+        "url": "ssh://git@git.ts.platonic.systems/mason.mackaman/nix-doc-gen.git"
       },
       "original": {
         "type": "git",
-        "url": "ssh://git@git.platonic.systems/mason.mackaman/nix-doc-gen.git"
+        "url": "ssh://git@git.ts.platonic.systems/mason.mackaman/nix-doc-gen.git"
       }
     },
     "fenix": {
